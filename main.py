@@ -5,6 +5,7 @@ import extensions
 bot = telebot.TeleBot(TOKEN)
 
 
+# Запуск при старте
 @bot.message_handler(commands=['start'])
 def get_start(message):
     text = 'Приветствую! Этот бот - конвертер валют.'
@@ -12,6 +13,7 @@ def get_start(message):
     get_help(message)
 
 
+# Помощь, дополнительно вызывается при старте
 @bot.message_handler(commands=['help'])
 def get_help(message):
     text = 'Для того, чтобы конвертировать валюту введи команду в следующем формате:' \
@@ -22,7 +24,8 @@ def get_help(message):
     bot.send_message(message.chat.id, text)
 
 
-@bot.message_handler(commands=['values'])  # Обработчик-помощник для того, чтобы посмотреть доступные валюты
+# Обработчик-помощник для того, чтобы посмотреть доступные валюты
+@bot.message_handler(commands=['values'])
 def values_help(message):
     text = 'Доступные валюты:'
     for key in currencies.keys():
@@ -30,7 +33,9 @@ def values_help(message):
     bot.send_message(message.chat.id, text)
 
 
-@bot.message_handler(content_types=['text'])  # Основной обработчик для конвертации
+# Основной обработчик для конвертации. Вызывает статический метод из класса Convertor.
+# Ловит исключения
+@bot.message_handler(content_types=['text'])
 def convert(message):
     try:
         txt = extensions.Convertor().get_price(message)
@@ -38,7 +43,9 @@ def convert(message):
         bot.reply_to(message, f'Ошибка пользователя\n{e}')
     except extensions.ConvertException as e:
         bot.reply_to(message, f'Ошибка пользователя\n{e}')
-    except extensions.IncorrectInputException as e:
+    except extensions.IncorrectValueNameException as e:
+        bot.reply_to(message, f'Ошибка пользователя\n{e}')
+    except extensions.IncorrectAmountException as e:
         bot.reply_to(message, f'Ошибка пользователя\n{e}')
     except Exception as e:
         bot.reply_to(message, f'Не удалось обработать команду\n{e}')
